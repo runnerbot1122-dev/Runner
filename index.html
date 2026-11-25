@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#06090d">
+<meta name="description" content="Pareamento oficial do bot.">
+<title>Pareamento</title>
+
+<!-- ============================================================
+     CONFIG — ÚNICO lugar onde vive a identidade visual da marca.
+     Altere apenas este bloco para reutilizar o site em outra marca.
+     ============================================================ -->
+<script>
+const CONFIG = {
+  brandName: "Runner-bot md",
+  bannerImageUrl: "https://i.postimg.cc/HL8yTVRM/bd6bd375d08772dd294d992906cefee5.jpg",
+  ownerNumber: "5531972655971",
+  ownerName: "Dev ez",
+  channelLink: "https://whatsapp.com/channel/0029VbCth7ZLCoX4R9L5pk2z",
+  backendUrl: "https://runner-bot-production-4f313d9c.up.railway.app"
+};
+</script>
+
+<style>
+  /* ---------------- Design tokens (fáceis de trocar) ---------------- */
+  :root{
+    --bg:            #06090d;
+    --surface:       rgba(255,255,255,.045);
+    --surface-2:     rgba(255,255,255,.028);
+    --border:        rgba(255,255,255,.09);
+    --border-strong: rgba(255,255,255,.17);
+    --text:          #f2f6fa;
+    --muted:         #8ea0b2;
+    --accent:        #2ee6a8;
+    --accent-2:      #33d6ff;
+    --accent-ink:    #04120c;
+    --danger:        #ff5d6c;
+    --radius:        18px;
+    --radius-sm:     13px;
+    --font: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+
+  /* ---------------- Reset ---------------- */
+  *,*::before,*::after{ box-sizing:border-box; }
+  html{ -webkit-text-size-adjust:100%; }
+  body{
+    margin:0;
+    min-height:100dvh;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font);
+    font-size:16px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    overflow-x:hidden;
+  }
+  [hidden]{ display:none !important; }
+  img{ max-width:100%; display:block; }
+  button{ font:inherit; }
+
+  /* ---------------- Background ---------------- */
+  .bg{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:
+      radial-gradient(900px 620px at 8% -12%, rgba(46,230,168,.20), transparent 62%),
+      radial-gradient(820px 700px at 104% 2%, rgba(51,214,255,.15), transparent 58%),
+      radial-gradient(760px 720px at 50% 118%, rgba(46,230,168,.10), transparent 62%);
+  }
+  .bg-grid{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:
+      linear-gradient(rgba(255,255,255,.032) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.032) 1px, transparent 1px);
+    background-size:46px 46px;
+    opacity:.55;
+    -webkit-mask-image: radial-gradient(ellipse 85% 55% at 50% 0%, #000 10%, transparent 78%);
+            mask-image: radial-gradient(ellipse 85% 55% at 50% 0%, #000 10%, transparent 78%);
+  }
+
+  /* ---------------- Layout ---------------- */
+  .wrap{
+    position:relative; z-index:1;
+    width:100%;
+    max-width:680px;
+    margin:0 auto;
+    padding:
+      calc(18px + env(safe-area-inset-top, 0px))
+      18px
+      calc(34px + env(safe-area-inset-bottom, 0px));
+    display:flex;
+    flex-direction:column;
+    gap:20px;
+  }
+
+  /* ---------------- Topbar ---------------- */
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px; padding-top:2px;
+  }
+  .brand{ display:flex; align-items:center; gap:11px; min-width:0; }
+  .brand__logo{
+    width:46px; height:46px; flex:none;
+    border-radius:14px;
+    object-fit:cover;
+    background:linear-gradient(135deg, var(--accent), var(--accent-2));
+    border:1px solid var(--border-strong);
+    box-shadow:0 12px 28px -14px rgba(46,230,168,.75);
+    color:var(--accent-ink);
+    font-weight:800;
+    font-size:.95rem;
+  }
+  .brand__text{ min-width:0; }
+  .brand__name{
+    font-size:1.02rem; font-weight:750; letter-spacing:-.02em; line-height:1.2;
+    max-width:44vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .brand__tag{
+    font-size:.65rem; font-weight:700; letter-spacing:.13em;
+    text-transform:uppercase; color:var(--muted); margin-top:2px;
+  }
+
+  .status{
+    display:inline-flex; align-items:center; gap:7px; flex:none;
+    padding:7px 12px; border-radius:999px;
+    border:1px solid var(--border);
+    background:var(--surface-2);
+    font-size:.76rem; font-weight:650; color:var(--muted);
+    white-space:nowrap;
+    transition:color .25s, border-color .25s, background .25s;
+  }
+  .status__dot{
+    width:7px; height:7px; border-radius:50%;
+    background:#697887; flex:none;
+    transition:background .25s, box-shadow .25s;
+  }
+  .status.is-online{
+    color:#8bf5cd;
+    border-color:rgba(46,230,168,.34);
+    background:rgba(46,230,168,.09);
+  }
+  .status.is-online .status__dot{
+    background:var(--accent);
+    box-shadow:0 0 10px var(--accent);
+    animation:pulse 2.1s ease-in-out infinite;
+  }
+  .status.is-offline{
+    color:#ffb2b9;
+    border-color:rgba(255,93,108,.32);
+    background:rgba(255,93,108,.08);
+  }
+  .status.is-offline .status__dot{ background:var(--danger); }
+
+  @keyframes pulse{
+    0%,100%{ box-shadow:0 0 0 0 rgba(46,230,168,.55); }
+    55%    { box-shadow:0 0 0 7px rgba(46,230,168,0); }
+  }
+
+  /* ---------------- Hero ---------------- */
+  .hero{ text-align:center; padding:4px 0 0; }
+  .hero h1{
+    margin:0 0 10px;
+    font-size:clamp(1.55rem, 6.6vw, 2.15rem);
+    line-height:1.12;
+    letter-spacing:-.032em;
+    font-weight:800;
+    text-wrap:balance;
+  }
+  .hero .hl{
+    background:linear-gradient(100deg, var(--accent), var(--accent-2));
+    -webkit-background-clip:text; background-clip:text;
+    -webkit-text-fill-color:transparent; color:transparent;
+  }
+  .hero p{
+    margin:0 auto;
+    max-width:46ch;
+    color:var(--muted);
+    font-size:.94rem;
+    line-height:1.55;
+  }
+
+  /* ---------------- Stats ---------------- */
+  .stats{ display:grid; grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; }
+  .stat{
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    border-radius:15px;
+    padding:13px 13px 12px;
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+  }
+  .stat__value{
+    font-size:1.28rem; font-weight:800; letter-spacing:-.025em;
+    line-height:1.15; font-variant-numeric:tabular-nums;
+  }
+  .stat__label{
+    margin-top:3px;
+    font-size:.66rem; font-weight:700; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--muted);
+  }
+
+  /* ---------------- Cards ---------------- */
+  .card{
+    background:linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.022));
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:20px;
+    box-shadow:
+      0 26px 60px -34px rgba(0,0,0,.95),
+      inset 0 1px 0 rgba(255,255,255,.06);
+    backdrop-filter:blur(16px);
+    -webkit-backdrop-filter:blur(16px);
+  }
+  .card__title{
+    margin:0;
+    font-size:1.04rem; font-weight:750; letter-spacing:-.02em;
+  }
+  .card__desc{
+    margin:6px 0 0;
+    font-size:.86rem; line-height:1.5; color:var(--muted);
+  }
+
+  /* ---------------- Fields ---------------- */
+  .field-row{ display:flex; gap:10px; margin-top:16px; }
+  .field{
+    display:flex; align-items:center;
+    background:rgba(255,255,255,.04);
+    border:1px solid var(--border);
+    border-radius:var(--radius-sm);
+    transition:border-color .18s ease, box-shadow .18s ease, background .18s ease;
+    overflow:hidden;
+    min-width:0;
+  }
+  .field:focus-within{
+    border-color:rgba(46,230,168,.55);
+    box-shadow:0 0 0 3px rgba(46,230,168,.13);
+    background:rgba(255,255,255,.06);
+  }
+  .field--cc{ width:94px; flex:none; }
+  .field--phone{ flex:1 1 auto; }
+  .field__prefix{
+    padding-left:13px;
+    color:var(--muted);
+    font-weight:700;
+    font-size:1rem;
+    user-select:none;
+  }
+  .field input{
+    width:100%;
+    min-width:0;
+    background:transparent;
+    border:0;
+    outline:0;
+    color:var(--text);
+    font:inherit;
+    font-size:1rem;
+    padding:14px;
+  }
+  .field--cc input{ padding-left:6px; padding-right:8px; }
+  .field input::placeholder{ color:#65757f; }
+
+  /* ---------------- Buttons ---------------- */
+  .btn{
+    width:100%;
+    margin-top:16px;
+    display:inline-flex; align-items:center; justify-content:center; gap:9px;
+    border:0;
+    border-radius:14px;
+    padding:15px 18px;
+    font-size:.97rem;
+    font-weight:750;
+    letter-spacing:-.01em;
+    color:var(--accent-ink);
+    background:linear-gradient(135deg, var(--accent), var(--accent-2));
+    box-shadow:0 18px 36px -18px rgba(46,230,168,.8);
+    cursor:pointer;
+    transition:transform .14s ease, box-shadow .22s ease, filter .22s ease, opacity .2s ease;
+    -webkit-tap-highlight-color:transparent;
+    text-decoration:none;
+  }
+  .btn:hover:not(:disabled){ filter:brightness(1.06); box-shadow:0 22px 42px -18px rgba(46,230,168,.95); }
+  .btn:active:not(:disabled){ transform:translateY(1px) scale(.995); }
+  .btn:disabled{ opacity:.62; cursor:not-allowed; box-shadow:none; filter:grayscale(.2); }
+  .btn:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+
+  .btn__spinner{
+    width:16px; height:16px; flex:none;
+    border-radius:50%;
+    border:2px solid rgba(4,18,12,.28);
+    border-top-color:var(--accent-ink);
+    animation:spin .7s linear infinite;
+    display:none;
+  }
+  .btn.is-loading .btn__spinner{ display:block; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  .btn--ghost{
+    background:rgba(255,255,255,.05);
+    color:var(--text);
+    border:1px solid var(--border-strong);
+    box-shadow:none;
+  }
+  .btn--ghost:hover:not(:disabled){
+    background:rgba(46,230,168,.11);
+    border-color:rgba(46,230,168,.45);
+    color:#c9ffe9;
+    filter:none;
+    box-shadow:none;
+  }
+
+  /* ---------------- Result ---------------- */
+  .result{ animation:rise .42s cubic-bezier(.22,.68,.36,1) both; }
+  @keyframes rise{
+    from{ opacity:0; transform:translateY(12px); }
+    to  { opacity:1; transform:none; }
+  }
+
+  .code-box{
+    margin-top:14px;
+    padding:18px 12px;
+    text-align:center;
+    border-radius:15px;
+    border:1px dashed rgba(46,230,168,.38);
+    background:
+      radial-gradient(130% 130% at 50% 0%, rgba(46,230,168,.15), rgba(46,230,168,.02) 72%);
+    transition:border-color .3s ease, background .3s ease;
+  }
+  .code-value{
+    font-family:var(--mono);
+    font-size:clamp(1.9rem, 10.5vw, 2.4rem);
+    font-weight:700;
+    line-height:1;
+    letter-spacing:.1em;
+    padding-left:.1em;
+    color:#c9ffe9;
+    text-shadow:0 0 26px rgba(46,230,168,.45);
+    user-select:all;
+    -webkit-user-select:all;
+    transition:color .3s ease, text-shadow .3s ease;
+  }
+  .code-box.is-expired{
+    border-color:rgba(255,93,108,.32);
+    background:radial-gradient(130% 130% at 50% 0%, rgba(255,93,108,.10), rgba(255,255,255,.01) 72%);
+  }
+  .code-box.is-expired .code-value{ color:#8496a3; text-shadow:none; }
+
+  .timer{
+    display:flex; align-items:center; justify-content:space-between;
+    gap:10px; margin-top:14px;
+    font-size:.79rem; font-weight:600; color:var(--muted);
+  }
+  .timer strong{
+    font-variant-numeric:tabular-nums;
+    color:var(--text);
+    font-weight:750;
+    letter-spacing:.02em;
+  }
+  .progress{
+    height:5px; margin-top:8px;
+    border-radius:999px;
+    background:rgba(255,255,255,.08);
+    overflow:hidden;
+  }
+  .progress__bar{
+    height:100%;
+    width:100%;
+    border-radius:999px;
+    background:linear-gradient(90deg, var(--accent), var(--accent-2));
+    transition:width .28s linear;
+  }
+
+  .hints{
+    list-style:none;
+    margin:16px 0 0;
+    padding:0;
+    display:grid;
+    gap:9px;
+  }
+  .hints li{
+    display:flex; align-items:flex-start; gap:9px;
+    font-size:.82rem; line-height:1.5; color:var(--muted);
+  }
+  .hints b{ color:var(--text); font-weight:650; }
+  .hints .n{
+    flex:none;
+    width:19px; height:19px; margin-top:1px;
+    border-radius:50%;
+    display:grid; place-items:center;
+    background:rgba(255,255,255,.08);
+    border:1px solid var(--border);
+    font-size:.66rem; font-weight:800; color:var(--text);
+  }
+
+  /* ---------------- Footer ---------------- */
+  .footer{
+    display:flex; flex-direction:column; align-items:center; gap:14px;
+    padding-top:4px;
+  }
+  .owner{ display:flex; align-items:center; gap:10px; }
+  .owner__avatar{
+    width:36px; height:36px; flex:none;
+    border-radius:50%;
+    display:grid; place-items:center;
+    background:linear-gradient(135deg, var(--accent), var(--accent-2));
+    color:var(--accent-ink);
+    font-weight:800; font-size:.9rem;
+    box-shadow:0 10px 24px -14px rgba(46,230,168,.9);
+  }
+  .owner__label{
+    font-size:.62rem; font-weight:800; letter-spacing:.14em;
+    text-transform:uppercase; color:var(--muted);
+  }
+  .owner__name{
+    font-size:.88rem; font-weight:650; letter-spacing:-.01em; line-height:1.3;
+    max-width:52vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .channel-btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:9px;
+    padding:11px 17px;
+    border-radius:13px;
+    background:rgba(255,255,255,.05);
+    border:1px solid var(--border-strong);
+    color:var(--text);
+    text-decoration:none;
+    font-size:.85rem; font-weight:650;
+    transition:background .2s ease, border-color .2s ease, color .2s ease, transform .14s ease;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .channel-btn:hover{
+    background:rgba(46,230,168,.11);
+    border-color:rgba(46,230,168,.45);
+    color:#c9ffe9;
+  }
+  .channel-btn:active{ transform:scale(.985); }
+  .channel-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+  .channel-btn svg{ flex:none; }
+
+  /* ---------------- Toasts ---------------- */
+  .toasts{
+    position:fixed;
+    left:50%;
+    bottom:calc(18px + env(safe-area-inset-bottom, 0px));
+    transform:translateX(-50%);
+    z-index:100;
+    width:calc(100% - 32px);
+    max-width:430px;
+    display:flex;
+    flex-direction:column;
+    gap:9px;
+    pointer-events:none;
+  }
+  .toast{
+    display:flex; align-items:flex-start; gap:10px;
+    padding:13px 14px;
+    border-radius:13px;
+    background:#111a22;
+    border:1px solid var(--border-strong);
+    color:var(--text);
+    font-size:.85rem;
+    line-height:1.42;
+    font-weight:500;
+    box-shadow:0 22px 46px -22px rgba(0,0,0,.95);
+    opacity:0;
+    transform:translateY(14px);
+    transition:opacity .26s ease, transform .26s cubic-bezier(.22,.68,.36,1);
+    pointer-events:auto;
+  }
+  .toast.is-in{ opacity:1; transform:translateY(0); }
+  .toast__icon{
+    flex:none;
+    width:18px; height:18px; margin-top:1px;
+    border-radius:50%;
+    display:grid; place-items:center;
+    font-size:.68rem; font-weight:800;
+    background:rgba(255,255,255,.1);
+    color:var(--text);
+  }
+  .toast--error{ border-color:rgba(255,93,108,.38); }
+  .toast--error .toast__icon{ background:rgba(255,93,108,.18); color:#ff8b96; }
+  .toast--success{ border-color:rgba(46,230,168,.38); }
+  .toast--success .toast__icon{ background:rgba(46,230,168,.18); color:var(--accent); }
+  .toast--info{ border-color:rgba(51,214,255,.32); }
+  .toast--info .toast__icon{ background:rgba(51,214,255,.18); color:#7fdcff; }
+
+  /* ---------------- Responsivo ---------------- */
+  @media (min-width:560px){
+    .stats{ grid-template-columns:repeat(4, minmax(0,1fr)); }
+    .brand__name{ max-width:280px; }
+    .card{ padding:24px; }
+  }
+  @media (min-width:520px){
+    .footer{ flex-direction:row; justify-content:space-between; align-items:center; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *,*::before,*::after{
+      animation-duration:.001ms !important;
+      animation-iteration-count:1 !important;
+      transition-duration:.001ms !important;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="bg" aria-hidden="true"></div>
+<div class="bg-grid" aria-hidden="true"></div>
+
+<main class="wrap">
+
+  <!-- ============ Topbar ============ -->
+  <header class="topbar">
+    <div class="brand">
+      <img class="brand__logo" id="brandLogo" alt="" width="46" height="46">
+      <div class="brand__text">
+        <div class="brand__name" id="brandName">—</div>
+        <div class="brand__tag">Bot oficial</div>
+      </div>
+    </div>
+
+    <div class="status" id="status" role="status" aria-live="polite">
+      <span class="status__dot" aria-hidden="true"></span>
+      <span id="statusText">Conectando</span>
+    </div>
+  </header>
+
+  <!-- ============ Hero ============ -->
+  <section class="hero">
+    <h1>Conecte seu <span class="hl">WhatsApp</span><br>em segundos</h1>
+    <p>Gere seu código de pareamento e ative o bot no seu número. Rápido, seguro e sem complicação.</p>
+  </section>
+
+  <!-- ============ Stats ============ -->
+  <section class="stats" aria-label="Estatísticas do servidor">
+    <div class="stat">
+      <div class="stat__value" id="statUsers">—</div>
+      <div class="stat__label">Usuários</div>
+    </div>
+    <div class="stat">
+      <div class="stat__value" id="statSessions">—</div>
+      <div class="stat__label">Sessões</div>
+    </div>
+    <div class="stat">
+      <div class="stat__value" id="statDaily">—</div>
+      <div class="stat__label">Hoje</div>
+    </div>
+    <div class="stat">
+      <div class="stat__value" id="statPaired">—</div>
+      <div class="stat__label">Pareados</div>
+    </div>
+  </section>
+
+  <!-- ============ Pairing ============ -->
+  <section class="card" aria-labelledby="pairTitle">
+    <h2 class="card__title" id="pairTitle">Parear meu número</h2>
+    <p class="card__desc">Informe o código do país e o número com DDD.</p>
+
+    <div class="field-row">
+      <div class="field field--cc">
+        <span class="field__prefix" aria-hidden="true">+</span>
+        <input id="cc" type="tel" inputmode="numeric" autocomplete="tel-country-code"
+               maxlength="4" value="55" aria-label="Código do país">
+      </div>
+      <div class="field field--phone">
+        <input id="phone" type="tel" inputmode="numeric" autocomplete="tel-national"
+               placeholder="DDD + número" aria-label="Número de telefone">
+      </div>
+    </div>
+
+    <button class="btn" id="pairBtn" type="button">
+      <span class="btn__spinner" aria-hidden="true"></span>
+      <span class="btn__label">Obter Código de Pareamento</span>
+    </button>
+  </section>
+
+  <!-- ============ Result ============ -->
+  <section class="card result" id="result" hidden aria-labelledby="resultTitle">
+    <h2 class="card__title" id="resultTitle">Seu código de pareamento</h2>
+
+    <div class="code-box" id="codeBox">
+      <div class="code-value" id="codeValue">————</div>
+    </div>
+
+    <button class="btn btn--ghost" id="copyBtn" type="button">Copiar código</button>
+
+    <div class="timer">
+      <span id="timerLabel">Expira em</span>
+      <strong id="countdown">--:--</strong>
+    </div>
+    <div class="progress" aria-hidden="true">
+      <div class="progress__bar" id="progressBar"></div>
+    </div>
+
+    <ol class="hints">
+      <li><span class="n">1</span><span>Abra o WhatsApp no seu celular.</span></li>
+      <li><span class="n">2</span><span>Vá em <b>Dispositivos conectados</b> → <b>Conectar dispositivo</b>.</span></li>
+      <li><span class="n">3</span><span>Escolha <b>Conectar com número de telefone</b> e digite o código acima.</span></li>
+    </ol>
+  </section>
+
+  <!-- ============ Footer ============ -->
+  <footer class="footer">
+    <div class="owner">
+      <div class="owner__avatar" id="ownerAvatar" aria-hidden="true">·</div>
+      <div>
+        <div class="owner__label">Owner</div>
+        <div class="owner__name" id="ownerName">—</div>
+      </div>
+    </div>
+
+    <a class="channel-btn" id="channelLink" href="#" target="_blank" rel="noopener noreferrer">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 11l18-8-8 18-2-8-8-2z"/>
+      </svg>
+      <span>Entrar no canal</span>
+    </a>
+  </footer>
+
+</main>
+
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* =========================================================
+     HELPERS
+     ========================================================= */
+  var $ = function (id) { return document.getElementById(id); };
+
+  function onlyDigits(value) {
+    return String(value == null ? "" : value).replace(/\D+/g, "");
+  }
+
+  function fmtNumber(n) {
+    return (typeof n === "number" && isFinite(n)) ? n.toLocaleString("pt-BR") : "—";
+  }
+
+  function pad2(n) {
+    return (n < 10 ? "0" : "") + n;
+  }
+
+  function formatTime(totalSeconds) {
+    var s = Math.max(0, Math.ceil(totalSeconds));
+    return pad2(Math.floor(s / 60)) + ":" + pad2(s % 60);
+  }
+
+  /* =========================================================
+     TOASTS
+     ========================================================= */
+  var toastWrap = $("toasts");
+
+  function toast(message, type) {
+    if (!toastWrap) return;
+
+    var el = document.createElement("div");
+    el.className = "toast" + (type ? " toast--" + type : " toast--info");
+
+    var icon = document.createElement("span");
+    icon.className = "toast__icon";
+    icon.setAttribute("aria-hidden", "true");
+    icon.textContent = type === "success" ? "✓" : (type === "error" ? "!" : "i");
+
+    var msg = document.createElement("span");
+    msg.className = "toast__msg";
+    msg.textContent = String(message);
+
+    el.appendChild(icon);
+    el.appendChild(msg);
+    toastWrap.appendChild(el);
+
+    requestAnimationFrame(function () {
+      el.classList.add("is-in");
+    });
+
+    window.setTimeout(function () {
+      el.classList.remove("is-in");
+      window.setTimeout(function () {
+        if (el.parentNode) el.parentNode.removeChild(el);
+      }, 320);
+    }, 4200);
+  }
+
+  /* =========================================================
+     BRAND (tudo vem do CONFIG)
+     ========================================================= */
+  document.title = CONFIG.brandName + " · Pareamento";
+
+  var brandLogo = $("brandLogo");
+  brandLogo.src = CONFIG.bannerImageUrl;
+  brandLogo.alt = CONFIG.brandName;
+
+  $("brandName").textContent = CONFIG.brandName;
+  $("ownerName").textContent = CONFIG.ownerName;
+
+  var initial = String(CONFIG.ownerName || "·").trim().charAt(0).toUpperCase();
+  $("ownerAvatar").textContent = initial || "·";
+
+  var channelLink = $("channelLink");
+  channelLink.href = CONFIG.channelLink;
+
+  /* =========================================================
+     STATUS + STATS
+     ========================================================= */
+  var statusEl = $("status");
+  var statusText = $("statusText");
+
+  var statUsers = $("statUsers");
+  var statSessions = $("statSessions");
+  var statDaily = $("statDaily");
+  var statPaired = $("statPaired");
+
+  function setStatus(online) {
+    statusEl.classList.toggle("is-online", !!online);
+    statusEl.classList.toggle("is-offline", !online);
+    statusText.textContent = online ? "Online" : "Offline";
+  }
+
+  function loadHealth() {
+    return fetch(CONFIG.backendUrl + "/api/health", { cache: "no-store" })
+      .then(function (res) {
+        if (!res.ok) throw new Error("health");
+        return res.json();
+      })
+      .then(function (data) {
+        setStatus(!!(data && data.status === "ok"));
+      })
+      .catch(function () {
+        setStatus(false);
+      });
+  }
+
+  function loadStats() {
+    return fetch(CONFIG.backendUrl + "/api/stats", { cache: "no-store" })
+      .then(function (res) {
+        if (!res.ok) throw new Error("stats");
+        return res.json();
+      })
+      .then(function (data) {
+        if (!data || data.ok !== true) return; /* mantém os últimos valores */
+        statUsers.textContent = fmtNumber(data.totalUsers);
+        statSessions.textContent = fmtNumber(data.activeSessions);
+        statDaily.textContent = fmtNumber(data.dailyNew);
+        statPaired.textContent = fmtNumber(data.totalPaired);
+      })
+      .catch(function () { /* mantém os últimos valores exibidos */ });
+  }
+
+  loadHealth();
+  loadStats();
+  window.setInterval(function () {
+    loadHealth();
+    loadStats();
+  }, 30000);
+
+  /* =========================================================
+     PAIRING
+     ========================================================= */
+  var ccInput = $("cc");
+  var phoneInput = $("phone");
+  var pairBtn = $("pairBtn");
+  var pairLabel = pairBtn.querySelector(".btn__label");
+  var resultEl = $("result");
+  var codeBox = $("codeBox");
+  var codeValue = $("codeValue");
+  var copyBtn = $("copyBtn");
+  var countdownEl = $("countdown");
+  var timerLabel = $("timerLabel");
+  var progressBar = $("progressBar");
+
+  var currentCode = "";
+  var cdTimer = null;
+  var cdEndsAt = 0;
+  var cdTotal = 0;
+
+  ccInput.addEventListener("input", function () {
+    ccInput.value = onlyDigits(ccInput.value).slice(0, 4);
+  });
+
+  phoneInput.addEventListener("input", function () {
+    phoneInput.value = phoneInput.value.replace(/[^\d\s\-()]/g, "");
+  });
+
+  phoneInput.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handlePair();
+    }
+  });
+
+  function setLoading(on) {
+    pairBtn.disabled = on;
+    pairBtn.classList.toggle("is-loading", on);
+    pairLabel.textContent = on ? "Gerando..." : "Obter Código de Pareamento";
+  }
+
+  function errorMessage(status, data) {
+    if (data && typeof data.error === "string" && data.error.trim()) {
+      return data.error;
+    }
+    switch (status) {
+      case 400: return "Número inválido. Verifique e tente novamente.";
+      case 429: return "Já existe um pareamento em andamento. Aguarde o código expirar.";
+      case 503: return "Capacidade de pareamento cheia. Tente novamente em instantes.";
+      case 500: return "Não foi possível gerar um código. Tente novamente.";
+      default:  return "Algo deu errado. Tente novamente.";
+    }
+  }
+
+  function handlePair() {
+    if (pairBtn.disabled) return;
+
+    var cc = onlyDigits(ccInput.value);
+    var local = onlyDigits(phoneInput.value);
+    var number = cc + local;
+
+    if (number.length < 10 || number.length > 15) {
+      toast("Número inválido. Use o código do país + número com DDD.", "error");
+      phoneInput.focus();
+      return;
+    }
+
+    setLoading(true);
+
+    fetch(CONFIG.backendUrl + "/api/pair", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        number: number,
+        brand: {
+          name: CONFIG.brandName,
+          banner: CONFIG.bannerImageUrl,
+          owner: CONFIG.ownerNumber,
+          ownerName: CONFIG.ownerName,
+          channel: CONFIG.channelLink
+        }
+      })
+    })
+      .then(function (res) {
+        return res.json()
+          .catch(function () { return null; })
+          .then(function (data) {
+            return { ok: res.ok, status: res.status, data: data };
+          });
+      })
+      .then(function (out) {
+        if (!out.ok) {
+          toast(errorMessage(out.status, out.data), "error");
+          return;
+        }
+        if (out.data && out.data.code) {
+          showResult(out.data.code, Number(out.data.expiresIn) || 120);
+          toast("Código gerado com sucesso!", "success");
+        } else {
+          toast("Não foi possível gerar um código.", "error");
+        }
+      })
+      .catch(function () {
+        toast("Não foi possível alcançar o servidor, por favor tente novamente", "error");
+      })
+      .then(function () {
+        setLoading(false);
+      });
+  }
+
+  pairBtn.addEventListener("click", handlePair);
+
+  /* =========================================================
+     RESULT / COUNTDOWN
+     ========================================================= */
+  function showResult(rawCode, expiresIn) {
+    currentCode = String(rawCode).replace(/[^a-zA-Z0-9]/g, "");
+
+    var pretty = currentCode.length === 8
+      ? currentCode.slice(0, 4) + "-" + currentCode.slice(4)
+      : currentCode;
+
+    codeValue.textContent = pretty;
+    codeBox.classList.remove("is-expired");
+    copyBtn.disabled = false;
+
+    var wasHidden = resultEl.hidden;
+    resultEl.hidden = false;
+
+    startCountdown(expiresIn);
+
+    if (wasHidden) {
+      window.setTimeout(function () {
+        try {
+          resultEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        } catch (e) {
+          resultEl.scrollIntoView();
+        }
+      }, 60);
+    }
+  }
+
+  function startCountdown(seconds) {
+    if (cdTimer) {
+      window.clearInterval(cdTimer);
+      cdTimer = null;
+    }
+    cdTotal = Math.max(1, Number(seconds) || 120);
+    cdEndsAt = Date.now() + cdTotal * 1000;
+    tick();
+    cdTimer = window.setInterval(tick, 250);
+  }
+
+  function tick() {
+    var remainingMs = cdEndsAt - Date.now();
+    var remaining = Math.max(0, remainingMs / 1000);
+
+    countdownEl.textContent = formatTime(remaining);
+
+    var pct = Math.max(0, Math.min(100, (remaining / cdTotal) * 100));
+    progressBar.style.width = pct + "%";
+
+    if (remainingMs <= 0) {
+      if (cdTimer) {
+        window.clearInterval(cdTimer);
+        cdTimer = null;
+      }
+      codeBox.classList.add("is-expired");
+      timerLabel.textContent = "Código expirado";
+      countdownEl.textContent = "00:00";
+      progressBar.style.width = "0%";
+      copyBtn.disabled = true;
+      currentCode = "";
+    } else {
+      timerLabel.textContent = "Expira em";
+    }
+  }
+
+  /* =========================================================
+     COPY
+     ========================================================= */
+  function legacyCopy(text) {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.top = "-1000px";
+    ta.style.left = "-1000px";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    ta.setSelectionRange(0, ta.value.length);
+    var ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    return ok;
+  }
+
+  copyBtn.addEventListener("click", function () {
+    if (!currentCode) {
+      toast("Nenhum código ativo para copiar.", "error");
+      return;
+    }
+    var code = currentCode;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(code).then(function () {
+        toast("Código copiado!", "success");
+      }).catch(function () {
+        if (legacyCopy(code)) toast("Código copiado!", "success");
+        else toast("Não foi possível copiar. Copie manualmente.", "error");
+      });
+    } else {
+      if (legacyCopy(code)) toast("Código copiado!", "success");
+      else toast("Não foi possível copiar. Copie manualmente.", "error");
+    }
+  });
+
+})();
+</script>
+
+</body>
+</html>
